@@ -4,14 +4,15 @@ import { Input } from './ui/input';
 import { ScrollArea } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from './ui/alert-dialog';
 import { Label } from './ui/label';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { ArrowLeft, Download, FileText, StickyNote, Wrench, Image, Volume2, Languages, PlusCircle, Plus, Trash2, ChevronUp, ChevronDown, X, Loader2, Check, FileDown } from 'lucide-react';
+import { ArrowLeft, Download, FileText, StickyNote, Wrench, Image, Volume2, PlusCircle, Plus, Trash2, ChevronUp, ChevronDown, X, Loader2, Check, FileDown } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+import { LanguageToggle } from './LanguageToggle';
 import { toast } from 'sonner@2.0.3';
 import type { Presentation, Slide } from '../App';
 import { ImageWithFallback } from './figma/ImageWithFallback';
@@ -26,8 +27,10 @@ interface EditorProps {
 
 export function Editor({ presentation, onBack, onUpdate }: EditorProps) {
   const [localPresentation, setLocalPresentation] = useState<Presentation>(presentation);
+  const [originalPresentation, setOriginalPresentation] = useState<Presentation>(presentation);
   const [selectedSlideId, setSelectedSlideId] = useState(presentation.slides[0]?.id || '');
   const [mobileView, setMobileView] = useState<'editor' | 'slides' | 'notes' | 'tools'>('editor');
+  const [currentLanguage, setCurrentLanguage] = useState<string>('en');
   
   // Media state
   const [mediaImages, setMediaImages] = useState<string[]>([]);
@@ -41,7 +44,6 @@ export function Editor({ presentation, onBack, onUpdate }: EditorProps) {
   
   // Translation state
   const [translating, setTranslating] = useState(false);
-  const [targetLanguage, setTargetLanguage] = useState('hi');
   
   // Export dialog
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
@@ -234,36 +236,132 @@ export function Editor({ presentation, onBack, onUpdate }: EditorProps) {
   };
 
   // Translation Functions
-  const handleTranslate = () => {
-    setTranslating(true);
-    
-    // Simulate translation
-    setTimeout(() => {
-      const languageNames: Record<string, string> = {
-        hi: 'Hindi',
-        mr: 'Marathi',
-        ta: 'Tamil',
-        te: 'Telugu',
-        bn: 'Bengali'
-      };
+  const translateText = async (text: string, targetLang: string): Promise<string> => {
+    // Don't translate if target is English or text is empty
+    if (targetLang === 'en' || !text || text.trim() === '') {
+      return text;
+    }
+
+    try {
+      // Add delay to avoid rate limiting (MyMemory allows 1000 chars/request, 100 req/day)
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Mock translation - just add language indicator
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${targetLang}`;
+      console.log('Translating:', text.substring(0, 50), 'to', targetLang);
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Translation response:', data);
+      
+      if (data.responseStatus === 200 && data.responseData?.translatedText) {
+        const translated = data.responseData.translatedText;
+        console.log('Translated result:', translated.substring(0, 50));
+        return translated;
+      }
+      
+      if (data.responseStatus === 403) {
+        console.error('Translation API quota exceeded');
+        throw new Error('Translation quota exceeded');
+      }
+      
+      throw new Error(`Translation API error: ${data.responseStatus}`);
+    } catch (error) {
+      console.error('Translation error for text:', text.substring(0, 50), error);
+      return text; // Return original text on error
+    }
+  };
+
+  const handleLanguageChange = async (targetLang: string) => {
+    const languageNames: Record<string, string> = {
+      en: 'English',
+      hi: 'Hindi',
+      mr: 'Marathi',
+      ta: 'Tamil',
+      te: 'Telugu',
+      bn: 'Bengali',
+      gu: 'Gujarati',
+      kn: 'Kannada',
+      ml: 'Malayalam',
+      pa: 'Punjabi',
+      or: 'Odia',
+      es: 'Spanish',
+      fr: 'French',
+      de: 'German',
+      zh: 'Chinese',
+      ja: 'Japanese',
+      ko: 'Korean',
+      ar: 'Arabic',
+      ru: 'Russian',
+      pt: 'Portuguese',
+      it: 'Italian'
+    };
+
+    // If changing to English, restore original content
+    if (targetLang === 'en') {
+      setLocalPresentation(originalPresentation);
+      setCurrentLanguage('en');
+      toast.success('Switched to English');
+      return;
+    }
+
+    // If same language, do nothing
+    if (targetLang === currentLanguage) {
+      return;
+    }
+
+    setTranslating(true);
+    toast.info(`Translating to ${languageNames[targetLang]}...`);
+    
+    try {
+      // Use original presentation as source for translation to avoid compounding errors
+      const translatedSlides = await Promise.all(
+        originalPresentation.slides.map(async (slide, index) => {
+          console.log(`Translating slide ${index + 1}/${originalPresentation.slides.length}`);
+          
+          // Translate title
+          const translatedTitle = await translateText(slide.title, targetLang);
+          
+          // Translate content bullets if they exist
+          let translatedContent = slide.content;
+          if (slide.content && slide.content.length > 0) {
+            translatedContent = await Promise.all(
+              slide.content.map(async (item) => await translateText(item, targetLang))
+            );
+          }
+
+          // Translate notes if they exist
+          const translatedNotes = slide.notes 
+            ? await translateText(slide.notes, targetLang)
+            : '';
+
+          return {
+            ...slide,
+            title: translatedTitle,
+            content: translatedContent,
+            notes: translatedNotes
+          };
+        })
+      );
+
+      // Update all slides with translated content
       setLocalPresentation(prev => ({
         ...prev,
-        slides: prev.slides.map(s =>
-          s.id === selectedSlideId
-            ? {
-                ...s,
-                title: `${s.title} (${languageNames[targetLanguage]})`,
-                content: s.content?.map(item => `${item} (${languageNames[targetLanguage]})`)
-              }
-            : s
-        )
+        slides: translatedSlides
       }));
       
+      setCurrentLanguage(targetLang);
+      toast.success(`Successfully translated to ${languageNames[targetLang]}`);
+    } catch (error) {
+      toast.error('Translation failed. Please try again.');
+      console.error('Translation error:', error);
+    } finally {
       setTranslating(false);
-      toast.success(`Translated to ${languageNames[targetLanguage]}`);
-    }, 1500);
+    }
   };
 
   // Export Functions
@@ -347,11 +445,23 @@ export function Editor({ presentation, onBack, onUpdate }: EditorProps) {
                     </Button>
                   </div>
                 ) : (
-                  <div 
-                    className="flex-1 cursor-pointer hover:opacity-70 transition-opacity group-hover:pr-10"
-                    onClick={() => isEditable && setEditingBulletIndex(index)}
-                  >
-                    {item}
+                  <div className="flex-1 flex items-center gap-2">
+                    <div 
+                      className="flex-1 cursor-pointer hover:opacity-70 transition-opacity"
+                      onClick={() => isEditable && setEditingBulletIndex(index)}
+                    >
+                      {item}
+                    </div>
+                    {isEditable && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteBulletPoint(index)}
+                        className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 clay-button border-0 shadow-none"
+                      >
+                        <Trash2 className="w-3 h-3 text-destructive" />
+                      </Button>
+                    )}
                   </div>
                 )}
               </li>
@@ -375,6 +485,19 @@ export function Editor({ presentation, onBack, onUpdate }: EditorProps) {
 
   return (
     <>
+      {/* Translation Loading Overlay */}
+      {translating && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="clay-card p-8 max-w-md text-center space-y-4">
+            <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
+            <h3>Translating Presentation</h3>
+            <p className="text-muted-foreground">
+              Translating all slides, content, and speaker notes...
+            </p>
+          </div>
+        </div>
+      )}
+      
       {/* Desktop Layout */}
       <div className="hidden lg:flex h-screen">
         {/* Column 1: Slide Navigation */}
@@ -408,24 +531,26 @@ export function Editor({ presentation, onBack, onUpdate }: EditorProps) {
                   >
                     <div className="text-muted-foreground mb-1 flex items-center justify-between">
                       <span>Slide {index + 1}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSlideToDelete(slide.id);
-                          setDeleteDialogOpen(true);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 clay-button border-0 shadow-none"
-                      >
-                        <Trash2 className="w-3 h-3 text-destructive" />
-                      </Button>
+                      {selectedSlideId !== slide.id && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSlideToDelete(slide.id);
+                            setDeleteDialogOpen(true);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 clay-button border-0 shadow-none"
+                        >
+                          <Trash2 className="w-3 h-3 text-destructive" />
+                        </Button>
+                      )}
                     </div>
                     <div className="line-clamp-2">{slide.title}</div>
                   </div>
                   
                   {selectedSlideId === slide.id && (
-                    <div className="absolute -right-2 top-1/2 -translate-y-1/2 flex flex-col gap-1">
+                    <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -457,6 +582,7 @@ export function Editor({ presentation, onBack, onUpdate }: EditorProps) {
           <div className="clay-card p-4 flex items-center justify-between border-0 rounded-none shadow-none" style={{ boxShadow: '0 4px 12px rgba(197, 205, 216, 0.3)' }}>
             <h1>{localPresentation.title}</h1>
             <div className="flex items-center gap-3">
+              <LanguageToggle onLanguageChange={handleLanguageChange} />
               <ThemeToggle />
               <Button 
                 variant="outline" 
@@ -577,46 +703,6 @@ export function Editor({ presentation, onBack, onUpdate }: EditorProps) {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="translate">
-                <AccordionTrigger className="px-4">
-                  <div className="flex items-center gap-2">
-                    <Languages className="w-5 h-5" />
-                    Translate
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4 space-y-4">
-                  <div className="space-y-2">
-                    <Label>Target Language</Label>
-                    <Select value={targetLanguage} onValueChange={setTargetLanguage}>
-                      <SelectTrigger className="clay-input border-0 shadow-none">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="clay-card border-0">
-                        <SelectItem value="hi">Hindi</SelectItem>
-                        <SelectItem value="mr">Marathi</SelectItem>
-                        <SelectItem value="ta">Tamil</SelectItem>
-                        <SelectItem value="te">Telugu</SelectItem>
-                        <SelectItem value="bn">Bengali</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button 
-                    onClick={handleTranslate} 
-                    className="w-full clay-button border-0 shadow-none"
-                    disabled={translating}
-                  >
-                    {translating ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                        Translating...
-                      </>
-                    ) : (
-                      'Translate Slide'
-                    )}
-                  </Button>
-                </AccordionContent>
-              </AccordionItem>
-
               <AccordionItem value="interactive">
                 <AccordionTrigger className="px-4">
                   <div className="flex items-center gap-2">
@@ -674,14 +760,18 @@ export function Editor({ presentation, onBack, onUpdate }: EditorProps) {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h2 className="flex-1 mx-4 truncate text-center">{localPresentation.title}</h2>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="min-w-[44px] min-h-[44px] clay-button border-0 shadow-none rounded-full"
-            onClick={() => setExportDialogOpen(true)}
-          >
-            <Download className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <LanguageToggle onLanguageChange={handleLanguageChange} />
+            <ThemeToggle />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="min-w-[44px] min-h-[44px] clay-button border-0 shadow-none rounded-full"
+              onClick={() => setExportDialogOpen(true)}
+            >
+              <Download className="w-5 h-5" />
+            </Button>
+          </div>
         </header>
 
         {/* Main Content */}
@@ -898,43 +988,6 @@ export function Editor({ presentation, onBack, onUpdate }: EditorProps) {
                           />
                         </>
                       )}
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="translate">
-                    <AccordionTrigger>
-                      <div className="flex items-center gap-2">
-                        <Languages className="w-5 h-5" />
-                        Translate
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="space-y-4">
-                      <Select value={targetLanguage} onValueChange={setTargetLanguage}>
-                        <SelectTrigger className="clay-input border-0 shadow-none">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="clay-card border-0">
-                          <SelectItem value="hi">Hindi</SelectItem>
-                          <SelectItem value="mr">Marathi</SelectItem>
-                          <SelectItem value="ta">Tamil</SelectItem>
-                          <SelectItem value="te">Telugu</SelectItem>
-                          <SelectItem value="bn">Bengali</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button 
-                        onClick={handleTranslate} 
-                        className="w-full clay-button border-0 shadow-none"
-                        disabled={translating}
-                      >
-                        {translating ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                            Translating...
-                          </>
-                        ) : (
-                          'Translate Slide'
-                        )}
-                      </Button>
                     </AccordionContent>
                   </AccordionItem>
 
