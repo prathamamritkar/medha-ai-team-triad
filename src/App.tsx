@@ -3,6 +3,7 @@ import { LoginScreen } from './components/LoginScreen';
 import { Dashboard } from './components/Dashboard';
 import { Generator } from './components/Generator';
 import { Editor } from './components/Editor';
+import { ThemeProvider } from './components/ThemeProvider';
 
 export type Screen = 'login' | 'dashboard' | 'generator' | 'editor';
 
@@ -101,29 +102,31 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      {currentScreen === 'login' && <LoginScreen onLogin={handleLogin} />}
-      {currentScreen === 'dashboard' && (
-        <Dashboard
-          presentations={presentations}
-          onNewPresentation={handleNewPresentation}
-          onEditPresentation={handleEditPresentation}
-        />
-      )}
-      {currentScreen === 'generator' && (
-        <Generator
-          onGenerate={handleGenerate}
-          onBack={handleBackToDashboard}
-          isGenerating={isGenerating}
-        />
-      )}
-      {currentScreen === 'editor' && currentPresentation && (
-        <Editor
-          presentation={currentPresentation}
-          onBack={handleBackToDashboard}
-        />
-      )}
-    </div>
+    <ThemeProvider>
+      <div className="min-h-screen bg-background transition-colors duration-300">
+        {currentScreen === 'login' && <LoginScreen onLogin={handleLogin} />}
+        {currentScreen === 'dashboard' && (
+          <Dashboard
+            presentations={presentations}
+            onNewPresentation={handleNewPresentation}
+            onEditPresentation={handleEditPresentation}
+          />
+        )}
+        {currentScreen === 'generator' && (
+          <Generator
+            onGenerate={handleGenerate}
+            onBack={handleBackToDashboard}
+            isGenerating={isGenerating}
+          />
+        )}
+        {currentScreen === 'editor' && currentPresentation && (
+          <Editor
+            presentation={currentPresentation}
+            onBack={handleBackToDashboard}
+          />
+        )}
+      </div>
+    </ThemeProvider>
   );
 }
 

@@ -6,6 +6,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
 import { ArrowLeft, Download, FileText, StickyNote, Wrench, Image, Volume2, Languages, PlusCircle } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 import type { Presentation, Slide } from '../App';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
@@ -67,10 +68,13 @@ export function Editor({ presentation, onBack }: EditorProps) {
         <div className="flex-1 flex flex-col">
           <div className="clay-card p-4 flex items-center justify-between border-0 rounded-none shadow-none" style={{ boxShadow: '0 4px 12px rgba(197, 205, 216, 0.3)' }}>
             <h1>{presentation.title}</h1>
-            <Button variant="outline" className="gap-2 clay-button border-0 shadow-none">
-              <Download className="w-5 h-5" />
-              Export
-            </Button>
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <Button variant="outline" className="gap-2 clay-button border-0 shadow-none">
+                <Download className="w-5 h-5" />
+                Export
+              </Button>
+            </div>
           </div>
           <div className="flex-1 flex items-center justify-center p-8 overflow-auto">
             <div className="w-full max-w-4xl aspect-video clay-card p-12" style={{ boxShadow: 'var(--clay-shadow-lg)' }}>

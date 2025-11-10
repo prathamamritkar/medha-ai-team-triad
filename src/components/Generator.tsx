@@ -3,6 +3,7 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 
 interface GeneratorProps {
   onGenerate: (prompt: string) => void;
@@ -24,7 +25,7 @@ export function Generator({ onGenerate, onBack, isGenerating }: GeneratorProps) 
     <div className="min-h-screen">
       {/* Header */}
       <header className="clay-card sticky top-0 z-10 border-0 rounded-none shadow-none" style={{ boxShadow: '0 4px 12px rgba(197, 205, 216, 0.3)' }}>
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <Button
             variant="ghost"
             onClick={onBack}
@@ -34,6 +35,7 @@ export function Generator({ onGenerate, onBack, isGenerating }: GeneratorProps) 
             <ArrowLeft className="w-5 h-5" />
             Back
           </Button>
+          <ThemeToggle />
         </div>
       </header>
 

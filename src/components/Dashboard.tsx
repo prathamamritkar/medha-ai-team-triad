@@ -1,6 +1,7 @@
 import { Button } from './ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { FilePlus, Edit } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 import type { Presentation } from '../App';
 
 interface DashboardProps {
@@ -23,11 +24,14 @@ export function Dashboard({ presentations, onNewPresentation, onEditPresentation
             </div>
             <h1>Slidemaster</h1>
           </div>
-          <Button onClick={onNewPresentation} className="min-h-[44px] gap-2 clay-primary border-0 shadow-none">
-            <FilePlus className="w-5 h-5" />
-            <span className="hidden sm:inline">New Presentation</span>
-            <span className="sm:hidden">New</span>
-          </Button>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Button onClick={onNewPresentation} className="min-h-[44px] gap-2 clay-primary border-0 shadow-none">
+              <FilePlus className="w-5 h-5" />
+              <span className="hidden sm:inline">New Presentation</span>
+              <span className="sm:hidden">New</span>
+            </Button>
+          </div>
         </div>
       </header>
 
