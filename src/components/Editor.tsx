@@ -284,7 +284,7 @@ export function Editor({ presentation, onBack, onUpdate }: EditorProps) {
       return (
         <div className="h-full flex flex-col items-center justify-center text-center gap-6">
           <div className="clay-card w-20 h-20 p-3 flex items-center justify-center">
-            <img src={slidemasterLogo} alt="Slidemaster" className="w-full h-full object-contain" />
+            <img src={slidemasterLogo} alt="Slidemaster" className="w-full h-full object-cover" />
           </div>
           {isEditable && editingTitle ? (
             <Input

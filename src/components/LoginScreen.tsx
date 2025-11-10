@@ -30,7 +30,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <div className="clay-card w-24 h-24 p-4 flex items-center justify-center">
-            <img src={slidemasterLogo} alt="Slidemaster Logo" className="w-full h-full object-contain" />
+            <img src={slidemasterLogo} alt="Slidemaster Logo" className="w-full h-full object-cover" />
           </div>
         </div>
         

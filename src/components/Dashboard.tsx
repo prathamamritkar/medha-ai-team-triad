@@ -94,8 +94,8 @@ export function Dashboard({
       <header className="clay-card sticky top-0 z-10 border-0 rounded-none shadow-none" style={{ boxShadow: '0 4px 12px rgba(197, 205, 216, 0.3)' }}>
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 clay-card p-1.5 flex items-center justify-center">
-              <img src={slidemasterLogo} alt="Slidemaster" className="w-full h-full object-contain" />
+            <div className="w-10 h-10 clay-card !rounded-none p-1.5 flex items-center justify-center">
+              <img src={slidemasterLogo} alt="Slidemaster" className="w-full h-full object-cover" />
             </div>
             <h1>Slidemaster</h1>
           </div>
