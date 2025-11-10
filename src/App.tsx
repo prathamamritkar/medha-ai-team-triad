@@ -4,6 +4,7 @@ import { Dashboard } from './components/Dashboard';
 import { Generator } from './components/Generator';
 import { Editor } from './components/Editor';
 import { ThemeProvider } from './components/ThemeProvider';
+import { Toaster } from './components/ui/sonner';
 
 export type Screen = 'login' | 'dashboard' | 'generator' | 'editor';
 
@@ -28,7 +29,7 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Mock presentations data
-  const [presentations] = useState<Presentation[]>([
+  const [presentations, setPresentations] = useState<Presentation[]>([
     {
       id: '1',
       title: 'The Water Cycle',
@@ -86,10 +87,32 @@ function App() {
           { id: '3', type: 'content', title: 'Details', content: ['Important detail', 'Supporting information', 'Examples'], notes: 'Go deeper into the subject.' },
         ]
       };
+      setPresentations(prev => [newPresentation, ...prev]);
       setCurrentPresentation(newPresentation);
       setIsGenerating(false);
       setCurrentScreen('editor');
     }, 2000);
+  };
+
+  const handleDeletePresentation = (id: string) => {
+    setPresentations(prev => prev.filter(p => p.id !== id));
+  };
+
+  const handleDuplicatePresentation = (presentation: Presentation) => {
+    const duplicate: Presentation = {
+      ...presentation,
+      id: Date.now().toString(),
+      title: `${presentation.title} (Copy)`,
+      lastEdited: 'Just now',
+    };
+    setPresentations(prev => [duplicate, ...prev]);
+  };
+
+  const handleUpdatePresentation = (updatedPresentation: Presentation) => {
+    setPresentations(prev => 
+      prev.map(p => p.id === updatedPresentation.id ? updatedPresentation : p)
+    );
+    setCurrentPresentation(updatedPresentation);
   };
 
   const handleBackToDashboard = () => {
@@ -110,6 +133,8 @@ function App() {
             presentations={presentations}
             onNewPresentation={handleNewPresentation}
             onEditPresentation={handleEditPresentation}
+            onDeletePresentation={handleDeletePresentation}
+            onDuplicatePresentation={handleDuplicatePresentation}
           />
         )}
         {currentScreen === 'generator' && (
@@ -123,8 +148,10 @@ function App() {
           <Editor
             presentation={currentPresentation}
             onBack={handleBackToDashboard}
+            onUpdate={handleUpdatePresentation}
           />
         )}
+        <Toaster />
       </div>
     </ThemeProvider>
   );
