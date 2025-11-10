@@ -3,6 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card'
 import { FilePlus, Edit } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import type { Presentation } from '../App';
+import slidemasterLogo from 'figma:asset/1b4250e0a61557da82cce83510328ac4252f921e.png';
 
 interface DashboardProps {
   presentations: Presentation[];
@@ -17,10 +18,8 @@ export function Dashboard({ presentations, onNewPresentation, onEditPresentation
       <header className="clay-card sticky top-0 z-10 border-0 rounded-none shadow-none" style={{ boxShadow: '0 4px 12px rgba(197, 205, 216, 0.3)' }}>
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 clay-card flex items-center justify-center">
-              <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
+            <div className="w-10 h-10 clay-card p-1.5 flex items-center justify-center">
+              <img src={slidemasterLogo} alt="Slidemaster" className="w-full h-full object-contain" />
             </div>
             <h1>Slidemaster</h1>
           </div>

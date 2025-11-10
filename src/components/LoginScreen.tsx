@@ -4,6 +4,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { ThemeToggle } from './ThemeToggle';
+import slidemasterLogo from 'figma:asset/1b4250e0a61557da82cce83510328ac4252f921e.png';
 
 interface LoginScreenProps {
   onLogin: () => void;
@@ -26,13 +27,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       </div>
       
       <div className="w-full max-w-md">
-        {/* Logo/Icon */}
+        {/* Logo */}
         <div className="flex justify-center mb-8">
-          <div className="clay-card w-20 h-20 flex items-center justify-center">
-            <svg className="w-10 h-10 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-6 4h6" />
-            </svg>
+          <div className="clay-card w-24 h-24 p-4 flex items-center justify-center">
+            <img src={slidemasterLogo} alt="Slidemaster Logo" className="w-full h-full object-contain" />
           </div>
         </div>
         

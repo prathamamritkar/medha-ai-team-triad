@@ -9,6 +9,7 @@ import { ArrowLeft, Download, FileText, StickyNote, Wrench, Image, Volume2, Lang
 import { ThemeToggle } from './ThemeToggle';
 import type { Presentation, Slide } from '../App';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import slidemasterLogo from 'figma:asset/1b4250e0a61557da82cce83510328ac4252f921e.png';
 
 interface EditorProps {
   presentation: Presentation;
@@ -79,8 +80,11 @@ export function Editor({ presentation, onBack }: EditorProps) {
           <div className="flex-1 flex items-center justify-center p-8 overflow-auto">
             <div className="w-full max-w-4xl aspect-video clay-card p-12" style={{ boxShadow: 'var(--clay-shadow-lg)' }}>
               {selectedSlide.type === 'title' ? (
-                <div className="h-full flex flex-col items-center justify-center text-center">
-                  <h2 className="mb-4">{selectedSlide.title}</h2>
+                <div className="h-full flex flex-col items-center justify-center text-center gap-6">
+                  <div className="clay-card w-20 h-20 p-3 flex items-center justify-center">
+                    <img src={slidemasterLogo} alt="Slidemaster" className="w-full h-full object-contain" />
+                  </div>
+                  <h2 className="mb-0">{selectedSlide.title}</h2>
                   <div className="text-muted-foreground">Slidemaster Presentation</div>
                 </div>
               ) : (
@@ -234,8 +238,11 @@ export function Editor({ presentation, onBack }: EditorProps) {
         <div className="flex-1 p-4 overflow-auto">
           <div className="w-full aspect-video clay-card p-6" style={{ boxShadow: 'var(--clay-shadow-lg)' }}>
             {selectedSlide.type === 'title' ? (
-              <div className="h-full flex flex-col items-center justify-center text-center">
-                <h3 className="mb-2">{selectedSlide.title}</h3>
+              <div className="h-full flex flex-col items-center justify-center text-center gap-4">
+                <div className="clay-card w-16 h-16 p-2.5 flex items-center justify-center">
+                  <img src={slidemasterLogo} alt="Slidemaster" className="w-full h-full object-contain" />
+                </div>
+                <h3 className="mb-0">{selectedSlide.title}</h3>
                 <div className="text-muted-foreground">Slidemaster Presentation</div>
               </div>
             ) : (
